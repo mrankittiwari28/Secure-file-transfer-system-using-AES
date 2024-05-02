@@ -1,0 +1,204 @@
+
+<!DOCTYPE html >
+        
+<html>
+  <!-- xmlns="http://www.w3.org/1999/xhtml"  html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"-->
+<head>
+  <title>Encryption and Decryption using AES</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tilt+Neon&display=swap" rel="stylesheet">
+  
+<link rel="stylesheet" type="text/css" href="style.css"/>
+  <script type="text/javascript" src="sjcl.js"></script>
+  <script type="text/javascript" src="form.js"></script>
+  <script type="text/javascript" src="script.js"></script>
+
+</head>
+<body onload="loaded()">
+  <h1>Encryption & Decryption using AES</h1>
+
+  <div class="header">
+  <p>To get started, just type in a password in the left pane and a secret message in the middle pane, then click "encrypt". Encryption takes place in your browser and we never see the plaintext.</p>
+  
+  <p>AES has lots of other options, many of which are shown in the grey boxes.</p>
+  </div>
+
+
+  <!-- <div> -->
+    <div class="box" id="imageBrowser">
+      <h3>
+        Browse the Image file to Encript it : 
+      </h3>
+      <!-- input image files -->
+      <input type="file" name="" id="fileId" accept="image/*" onchange="imageUploaded()">
+    </div>
+      
+      <!-- <button onclick="displayString()">
+        Display String
+      </button> -->
+      
+      
+
+      <!-- <div>
+        <h3>
+          Browse the Text file to Decryt it 
+        </h3> -->
+        <!-- input text files -->
+      <!-- <input type="file" name="text" id="fileText"  accept="text/*" /> </div>
+  </div> -->
+  
+<div id="mainSection">
+  <form id="theForm" onsubmit="return false;">
+    <div class="column" id="ckey">
+      <!-- Password and pbkdf2 parameters -->
+      <div class="box" id="ppassword">
+        <h2>Password</h2>
+        <div class="section">
+          <label for="password">Password:</label>
+          <input type="password" class="wide" name="password" id="password" autocomplete="off" tabindex="1"/>
+          <p class="explanation">
+            Choose a strong, random password.
+          </p>
+        </div>
+      </div>
+
+      <h2 onclick="toggleHide('pkey')">Key Derivation</h2> 
+      <div class="box" id="pkey">
+     
+      <div class="section">
+        <div>
+          <label for="salt">Salt:</label>
+          <a class="random floatright" href="javascript:randomize('salt',2,0)">random</a>
+        </div>
+        <input type="text" id="salt" class="wide hex" autocomplete="off" size="17" maxlength="35"/>
+        <input type="checkbox" name="freshsalt" id="freshsalt" autocomplete="off" checked="checked"/>
+        <label for="freshsalt">Use fresh random salt for each new password</label>
+        <p class="explanation">
+          Salt adds more variability to your key, and prevents attackers
+          from using <a href="http://en.wikipedia.org/wiki/Rainbow_table">rainbow tables</a> to attack it.
+        </p>     
+      </div>
+
+      <div class="section">
+        <input type="text" name="iter" id="iter" value="1000" class="numeric" size="5" maxlength="5" autocomplete="off"/>
+      </div>
+
+      <div class="section">
+        Key size:
+        <input type="radio" name="keysize" value="128" id="key128" checked="checked" autocomplete="off" onclick="extendKey(4)"/>
+        <label for="key128">128</label>
+        <input type="radio" name="keysize" value="192" id="key192" autocomplete="off" onclick="extendKey(6)"/>
+        <label for="key192">192</label>
+        <input type="radio" name="keysize" value="256" id="key256" autocomplete="off" onclick="extendKey(8)"/>
+        <label for="key256">256</label>
+        <p class="explanation">
+          128 bits should be secure enough, but you can generate a longer
+          key if you wish.
+        </p>
+      </div>
+
+      <!-- cipher key -->
+      <div class="section">
+        <div>
+          <label for="key">Key:</label>
+          
+          <!-- <a class="random floatright" href="javascript:randomizeKey()">random</a> -->
+         
+        </div>
+        <textarea id="key" name="key" class="hex" rows="2" autocomplete="off"></textarea>
+        <p class="explanation">
+          This key is computed from your password and salt.  It
+          will be used internally by the cipher.  Instead of using a password, you can
+          enter a key here directly.  If you do, it should be 32, 48 or 64 hexadecimal
+          digits (128, 192 or 256 bits).
+        </p>
+      </div>
+
+    </div>
+  </div>
+    
+    <!-- mode controls -->
+  <div class="column" id="cmode">
+    <div id="cmodess">
+      <div class="box">
+
+        <div class="section">
+          <input type="radio" name="mode" value="ccm" id="ccm" checked="checked" autocomplete="off"/>
+          <input type="radio" name="mode" value="ocb2" id="ocb2" autocomplete="off"/>
+        </div>
+        
+        <div class="section">
+          <input type="text" name="iv" id="iv" class="wide hex" size="32" maxlength="35" autocomplete="off"/>
+          <input type="checkbox" id="freshiv" autocomplete="off" checked="checked"/>
+        </div>
+        
+        <div class="section">
+          <input type="radio" name="tag" value="64" id="tag64" autocomplete="off" checked="checked"/>
+          <input type="radio" name="tag" value="96" id="tag96" autocomplete="off"/>
+          <input type="radio" name="tag" value="128" id="tag128" autocomplete="off"/>
+        </div>
+        
+        <div class="section">
+          <input type="checkbox" name="json" id="json" autocomplete="off" checked="checked"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  
+  <div class="column" id="ctexts">
+    <div id="pplaintext" class="box">
+      <h2>Plaintext</h2>
+      <div class="section">
+        <label for="plaintext">Secret message:</label>
+        <textarea id="plaintext" autocomplete="off" rows="5" tabindex="2"></textarea>
+        <div class="explanation">
+          This message will be encrypted, so that nobody can read it or change it
+          without your password.
+        </div>
+      </div>  
+   
+      <div id="authData" class="section">
+        <label for="adata">Authenticated data:</label>
+        <textarea id="adata" autocomplete="off" tabindex="3"></textarea>
+      </div>
+    </div>
+    
+    <div id="buttons">
+      <a href="javascript:doEncrypt()" id="encrypt" tabindex="4"><span class="turnDown">encrypt</span></a>
+      <a href="javascript:doDecrypt()" id="decrypt" tabindex="6"><span class="turnUp">decrypt</span></a>
+    </div>
+    
+    <div id="pciphertext" class="box">
+      <h2>Ciphertext</h2>
+      <label for="ciphertext">Ciphertext:</label>
+      <textarea id="ciphertext" autocomplete="off" rows="7" tabindex="5"></textarea>
+      <div class="explanation">
+        Your message, encrypted and authenticated so that nobody can read it
+        or change it without your password.
+      </div>
+      <p><button id="shareW">Share Encripted text using Whatsapp</button></p>
+      <p><button id="shareG">Share Encripted text using Gmail</button></p>
+      <p id="share Result"></p>
+    </div>
+  </div>
+  </form>
+
+  <div class="box" id="decrImg">
+    <h2 onclick="displayImage()">
+      View decripted Image
+    </h2>
+    <!-- container to display image  -->
+    <div id="imageContainer">
+        <div></div>
+    </div>
+  </div>
+</div>
+
+  <script type="text/javascript" src="share.js"></script>
+</body>
+</html>
